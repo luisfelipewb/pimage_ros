@@ -1,3 +1,5 @@
+#!/bin/python3
+
 import os
 import cv2
 import argparse

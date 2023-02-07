@@ -12,7 +12,7 @@ def img_to_vid(image_dir, tag):
     # Get a list of files containing the "_raw" tag
     img_names = []
     for file in os.listdir(image_dir):
-        if tag+'.png' in file:
+        if tag+'.png' in file or tag+'.jpg' in file:
             img_names.append(file)
     
     img_names.sort()
@@ -20,7 +20,8 @@ def img_to_vid(image_dir, tag):
     # print("Found", img_names.size, "images")
 
     # Prepare video
-    frameSize = (2448//4, 2048//4)
+    (h, w, _) = cv2.imread(os.path.join(image_dir, img_names[0])).shape
+    frameSize = (w//4, h//4)
     # frameSize = (2048, 2448)
     video_name = os.path.join(image_dir, 'video_'+tag+'.mp4')
     fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')

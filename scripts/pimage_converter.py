@@ -25,10 +25,10 @@ class PImageConverter(object):
         self.pub_pol = rospy.Publisher('~img_pol', Image,queue_size=10)
 
         # Subscribers
-        rospy.Subscriber("/arena_camera_node/image_raw", Image,self.callback)
+        rospy.Subscriber("/image_raw", Image,self.callback)
 
     def callback(self, msg):
-        rospy.loginfo('Image received...')
+        # rospy.loginfo('Image received...')
         cv_img = self.br.imgmsg_to_cv2(msg)
         self.lock.acquire()
         self.image = cv_img
@@ -84,7 +84,7 @@ class PImageConverter(object):
                 msg_pol = self.br.cv2_to_imgmsg(img_pol, encoding='bgr8')
                 self.pub_rgb.publish(msg_rgb)
                 self.pub_pol.publish(msg_pol)
-                rospy.loginfo('Images published')
+                # rospy.loginfo('Images published')
 
             self.loop_rate.sleep()
 
