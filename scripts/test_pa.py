@@ -1,32 +1,16 @@
-import argparse, os, time
+import os, time
 import cv2
 import numpy as np
 import polanalyser as pa
 
-parser = argparse.ArgumentParser(description="Test pipeline using polanalyser.")
-parser.add_argument("image_dir", help="Directory where at least one raw image exists")
-args = parser.parse_args()
-
-if os.path.isdir(args.image_dir) is False:
-    print("Directory", args.image_dir,"does not exists")
-    quit()
-
-img_name = None
-img_token = None
-for file in os.listdir(args.image_dir):
-    if "_raw.png" in file:
-        img_name = file
-        img_token = img_name[:-8] # remove '_raw.png' ending
-        break
-
-if img_name is None:
-    print("raw image not found in", args.image_dir)
-    quit()
-
-print(img_name)
+img_dir = "../img/"
+img_file = "frame00000_raw.png"
+img_token = "frame00000"
+img_path = os.path.join(img_dir, img_file)
+print(f"Opening image {img_path}")
 
 # Open image
-img_raw = cv2.imread(os.path.join(args.image_dir,img_name), cv2.IMREAD_GRAYSCALE)
+img_raw = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
 
 # Track total time
 p_time = time.time()
@@ -85,17 +69,16 @@ for i in range(3):
 # Generate False colored AoLP_DoLP representation for monochrome
 img_AoLP_DoLP_mono = pa.applyColorToAoLP(val_AoLP_mono, saturation=1.0, value=val_DoLP_mono)
 
-
-print(f"Total time:\t{time.time()-p_time:.3f}")
+print(f"Total time:\t {time.time()-p_time:.4f}")
 
 
 # Saving output:
-cv2.imwrite(os.path.join(args.image_dir,img_token+"_dolpc.png"), img_DoLP_color)
-cv2.imwrite(os.path.join(args.image_dir,img_token+"_dolpm.png"), img_DoLP_mono)
-cv2.imwrite(os.path.join(args.image_dir,img_token+"_rgb.png"), img_rgb)
-cv2.imwrite(os.path.join(args.image_dir,img_token+"_mono.png"), img_mono)
-cv2.imwrite(os.path.join(args.image_dir,img_token+"_rgb90.png"), img_rgb_90)
-cv2.imwrite(os.path.join(args.image_dir,img_token+"_aolpdolpm.png"), img_AoLP_DoLP_mono)
-cv2.imwrite(os.path.join(args.image_dir,img_token+"_aolpdolpb.png"), img_AoLP_DoLP_color[..., 0])
-cv2.imwrite(os.path.join(args.image_dir,img_token+"_aolpdolpg.png"), img_AoLP_DoLP_color[..., 1])
-cv2.imwrite(os.path.join(args.image_dir,img_token+"_aolpdolpr.png"), img_AoLP_DoLP_color[..., 2])
+cv2.imwrite(os.path.join(img_dir,img_token+"_dolpc_pa.png"), img_DoLP_color)
+cv2.imwrite(os.path.join(img_dir,img_token+"_dolpm_pa.png"), img_DoLP_mono)
+cv2.imwrite(os.path.join(img_dir,img_token+"_rgb_pa.png"), img_rgb)
+cv2.imwrite(os.path.join(img_dir,img_token+"_mono_pa.png"), img_mono)
+cv2.imwrite(os.path.join(img_dir,img_token+"_rgb90_pa.png"), img_rgb_90)
+cv2.imwrite(os.path.join(img_dir,img_token+"_aolpdolpm_pa.png"), img_AoLP_DoLP_mono)
+cv2.imwrite(os.path.join(img_dir,img_token+"_aolpdolpb_pa.png"), img_AoLP_DoLP_color[..., 0])
+cv2.imwrite(os.path.join(img_dir,img_token+"_aolpdolpg_pa.png"), img_AoLP_DoLP_color[..., 1])
+cv2.imwrite(os.path.join(img_dir,img_token+"_aolpdolpr_pa.png"), img_AoLP_DoLP_color[..., 2])

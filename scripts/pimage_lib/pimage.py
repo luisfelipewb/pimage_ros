@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 import cv2
 import numpy as np
 
@@ -53,16 +53,63 @@ def calcStokes(demosaiced_list: List[np.ndarray]) -> np.ndarray:
     -------
     stokes : stokes vector
     """
-    s0 = np.sum(demosaiced_list, axis=(0), dtype=np.float)/2
-    s1 = demosaiced_list[0].astype(np.float) - demosaiced_list[2].astype(np.float) #0-90
-    s2 = demosaiced_list[1].astype(np.float) - demosaiced_list[3].astype(np.float) #45-135
-    print(f"input shape {demosaiced_list[0].dtype}")
-    print(f"Shape: {np.shape(s0)} {s0.dtype}") 
-    print(f"Shape: {np.shape(s1)} {s1.dtype}") 
-    print(f"Shape: {np.shape(s2)} {s1.dtype}")
-    return np.stack((s0, s1, s2))
+    s0 = np.sum(demosaiced_list, axis=(0), dtype=np.float64)/2
+    s1 = demosaiced_list[0].astype(np.float64) - demosaiced_list[2].astype(np.float64) #0-90
+    s2 = demosaiced_list[1].astype(np.float64) - demosaiced_list[3].astype(np.float64) #45-135
+    return cv2.merge([s0, s1, s2])
 
 
 def calcDoLP(stokes):
+    """Compute the degree of linear polarization
+    Parameters
+    ----------
+    stokes : np.ndarray
+        3 channel array representing the stokes parameters
+    Returns
+    -------
+    dolp : List[np.ndarray]
+        Single channel image representing the degree of lienar polarization.
+    """
     # return np.sqrt(s1**2 + s2**2) / s0
-    return np.sqrt(stokes[1]**2 + stokes[2]**2) / stokes[0]
+    dolp = np.sqrt(stokes[...,1]**2 + stokes[...,2]**2) / stokes[...,0]
+    return dolp
+
+def calcAoLP(stokes):
+    """Comput the angle of linear polarization
+    Parameters
+    ----------
+    stokes : np.ndarray
+        3 channel array representing the stokes parameters
+    Returns
+    -------
+    dolp : List[np.ndarray]
+        Single channel image representing the degree of lienar polarization.
+    """
+    aolp = np.mod(0.5 * np.arctan2(stokes[...,2], stokes[...,1]), np.pi)
+    return aolp
+
+
+def falseColoring(aolp: np.ndarray, value: Union[float, np.ndarray] = 1.0) -> np.ndarray:
+    """False colloring to AoLP. Possible to use DoLP as value
+
+    Parameters
+    ----------
+    AoLP : np.ndarray
+        AoLP values ranging from 0.0 to pi
+    value : Union[float, np.ndarray], optional
+        Value value(s), by default 1.0
+
+    Returns
+    -------
+    colored : np.ndarray
+        False colored image (in BGR format)
+    """
+    ones = np.ones_like(aolp)
+
+    hue = (np.mod(aolp, np.pi) / np.pi * 179).astype(np.uint8)  # [0, pi] to [0, 179]
+    saturation = (ones*255).astype(np.uint8)
+    value = np.clip(ones * value * 255, 0, 255).astype(np.uint8)
+
+    hsv = cv2.merge([hue, saturation, value])
+    colored = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    return colored
