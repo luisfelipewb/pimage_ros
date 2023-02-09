@@ -56,7 +56,7 @@ def calcStokes(demosaiced_list: List[np.ndarray]) -> np.ndarray:
     s0 = np.sum(demosaiced_list, axis=(0), dtype=np.float64)/2
     s1 = demosaiced_list[0].astype(np.float64) - demosaiced_list[2].astype(np.float64) #0-90
     s2 = demosaiced_list[1].astype(np.float64) - demosaiced_list[3].astype(np.float64) #45-135
-    return cv2.merge([s0, s1, s2])
+    return np.stack((s0, s1, s2), axis=-1)
 
 
 def calcDoLP(stokes):
@@ -88,7 +88,6 @@ def calcAoLP(stokes):
     aolp = np.mod(0.5 * np.arctan2(stokes[...,2], stokes[...,1]), np.pi)
     return aolp
 
-
 def falseColoring(aolp: np.ndarray, value: Union[float, np.ndarray] = 1.0) -> np.ndarray:
     """False colloring to AoLP. Possible to use DoLP as value
 
@@ -113,3 +112,34 @@ def falseColoring(aolp: np.ndarray, value: Union[float, np.ndarray] = 1.0) -> np
     hsv = cv2.merge([hue, saturation, value])
     colored = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
     return colored
+
+def calcDiffuse(stokes: np.ndarray) -> np.ndarray:
+    """Convert stokes parameters to diffuse
+
+    Parameters
+    ----------
+    stokes : np.ndarray
+        Stokes parameters
+    Returns
+    -------
+    diffuse : np.ndarray
+        Diffuse
+    """
+    diffuse = (stokes[..., 0] - np.sqrt(stokes[..., 1]**2 + stokes[..., 2]**2)) * 0.5
+    return diffuse.astype(np.uint8)
+
+
+def calcSpecular(stokes: np.ndarray) -> np.ndarray:
+    """Convert stokes parameters to specular reflection
+
+    Parameters
+    ----------
+    stokes : np.ndarray
+        Stokes parameters
+    Returns
+    -------
+    specular : np.ndarray
+        Specular
+    """
+    specular = np.sqrt(stokes[..., 1]**2 + stokes[..., 2]**2)  # same as Imax - Imin
+    return specular.astype(np.uint8)
