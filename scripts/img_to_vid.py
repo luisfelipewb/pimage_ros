@@ -39,7 +39,7 @@ def img_to_vid(image_dir, tag):
         # print(frameSize)
         frame = cv2.resize(image, frameSize)
         
-        cv2.putText(frame, img_name, (50,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        # cv2.putText(frame, img_name, (50,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         # cv2.imshow("image", frame)
         # cv2.waitKey(1)
 

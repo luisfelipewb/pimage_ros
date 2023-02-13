@@ -16,16 +16,21 @@ def bag_to_raw(input_bag, output_dir, image_topic):
     bag = rosbag.Bag(input_bag, "r")
     bridge = CvBridge()
     count = 0
+    info = bag.get_type_and_topic_info()
+    total_msgs = info.topics[image_topic].message_count
     for _, msg, _ in bag.read_messages(topics=[image_topic]):
 
         cv_img_raw = bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
         # print("raw shape", cv_img_raw.shape)
-        out_path = os.path.join(output_dir, "frame{:05}_raw.png".format(count))
-        cv2.imwrite(out_path, cv_img_raw)
+        out_path = os.path.join(output_dir, "frame{:06}_raw.png".format(msg.header.seq))
+        # cv2.imwrite(out_path, cv_img_raw)
 
         count += 1
+        if count%10 == 0:
+            print(f"Processing {100*count/total_msgs:.1f}%", end="\r")
 
     bag.close()
+    print(f"Finished! Extracted {count}/{total_msgs} images")
 
     return
 

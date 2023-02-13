@@ -1,6 +1,7 @@
-# P Image Utils
+# Polarized Image Utils
 
 ROS package with tools to process raw images from polarized cameras
+Implementation of pimage_lib inspired from https://github.com/elerac/polanalyser
 
 Extracting raw images from bag file.
 ```
@@ -11,7 +12,7 @@ rosrun pimage_utils bag_to_raw.py  "/home/lwolfbat/bags/oil/2023-01-09-11-01-14.
 Convert raw images to polarized images
 ```
 cd ws/src/pimage_utils/scripts/
-raw_to_many.py ~/bags/oil/img/ --all #Super slow
+raw_to_many.py ~/bags/oil/img/
 
 
 Convert images to video
