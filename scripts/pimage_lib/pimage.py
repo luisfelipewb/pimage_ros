@@ -2,6 +2,7 @@ from typing import List, Union
 import cv2
 import numpy as np
 
+
 def demosaicing(img_raw: np.ndarray) -> List[np.ndarray]:
     """Polarization demosaicing
     Parameters
@@ -27,6 +28,7 @@ def demosaicing(img_raw: np.ndarray) -> List[np.ndarray]:
     img_bgr_000 = cv2.cvtColor(img_bayer_000, cv2.COLOR_BayerBG2BGR)
 
     return [img_bgr_000, img_bgr_045, img_bgr_090, img_bgr_135]
+
 
 def rgb(demosaiced_list: List[np.ndarray]) -> np.ndarray:
     """Extract rgb image
@@ -74,6 +76,7 @@ def calcDoLP(stokes):
     dolp = np.sqrt(stokes[...,1]**2 + stokes[...,2]**2) / stokes[...,0]
     return dolp
 
+
 def calcAoLP(stokes):
     """Comput the angle of linear polarization
     Parameters
@@ -87,6 +90,7 @@ def calcAoLP(stokes):
     """
     aolp = np.mod(0.5 * np.arctan2(stokes[...,2], stokes[...,1]), np.pi)
     return aolp
+
 
 def falseColoring(aolp: np.ndarray, value: Union[float, np.ndarray] = 1.0) -> np.ndarray:
     """False colloring to AoLP. Possible to use DoLP as value
@@ -112,6 +116,7 @@ def falseColoring(aolp: np.ndarray, value: Union[float, np.ndarray] = 1.0) -> np
     hsv = cv2.merge([hue, saturation, value])
     colored = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
     return colored
+
 
 def calcDiffuse(stokes: np.ndarray) -> np.ndarray:
     """Convert stokes parameters to diffuse
@@ -143,3 +148,77 @@ def calcSpecular(stokes: np.ndarray) -> np.ndarray:
     """
     specular = np.sqrt(stokes[..., 1]**2 + stokes[..., 2]**2)  # same as Imax - Imin
     return specular.astype(np.uint8)
+
+
+def extractColorAndPol(img_raw: np.ndarray):
+    """Extrac RGB and Colored images from the raw image
+
+    Parameters
+    ----------
+    img_raw : np.ndarray
+    Returns
+    -------
+    img_rgb : np.ndarray
+    img_pol : np.ndarray
+    """
+    demosaiced_color = demosaicing(img_raw)
+
+    demosaiced_mono = []
+    for i in range(4):
+        demosaiced_mono.append(cv2.cvtColor(demosaiced_color[i], cv2.COLOR_BGR2GRAY))
+
+    img_rgb = rgb(demosaiced_color)
+
+    stokes_mono = calcStokes(demosaiced_mono)
+
+    val_dolp_mono  = calcDoLP(stokes_mono)
+
+    val_aolp_mono = calcAoLP(stokes_mono)
+
+    img_pol_mono = falseColoring(val_aolp_mono, value=val_dolp_mono)
+
+    return img_rgb, img_pol_mono
+
+
+def extractLake(img_raw: np.ndarray):
+    """Extrac Six images commonly used in the lake from the raw image
+
+    Parameters
+    ----------
+    img_raw : np.ndarray
+    Returns
+    -------
+    img_rgb : np.ndarray
+    img_rgb_90 : np.ndarray
+    img_rgb_dif : np.ndarray
+    img_mono : np.ndarray
+    img_dolp_mono : np.ndarray
+    img_pol_mono : np.ndarray
+    """
+    demosaiced_color = demosaicing(img_raw)
+
+    demosaiced_mono = []
+    for i in range(4):
+        demosaiced_mono.append(cv2.cvtColor(demosaiced_color[i], cv2.COLOR_BGR2GRAY))
+
+    img_rgb = rgb(demosaiced_color)
+
+    img_rgb_90 = demosaiced_color[2]
+
+    img_mono = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
+
+    stokes_color = calcStokes(demosaiced_color)
+
+    img_rgb_dif = calcDiffuse(stokes_color)
+
+    stokes_mono = calcStokes(demosaiced_mono)
+
+    val_DoLP_mono  = calcDoLP(stokes_mono) # 0~1
+
+    img_dolp_mono = (val_DoLP_mono * 255).round().astype(np.uint8)
+
+    val_aolp_mono = calcAoLP(stokes_mono)
+
+    img_pol_mono = falseColoring(val_aolp_mono, value=val_DoLP_mono)
+
+    return img_rgb, img_rgb_90, img_rgb_dif, img_mono, img_dolp_mono, img_pol_mono

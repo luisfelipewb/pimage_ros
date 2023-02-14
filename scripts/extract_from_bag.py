@@ -23,7 +23,7 @@ def bag_to_raw(input_bag, output_dir, image_topic):
         cv_img_raw = bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
         # print("raw shape", cv_img_raw.shape)
         out_path = os.path.join(output_dir, "frame{:06}_raw.png".format(msg.header.seq))
-        # cv2.imwrite(out_path, cv_img_raw)
+        cv2.imwrite(out_path, cv_img_raw)
 
         count += 1
         if count%10 == 0:
