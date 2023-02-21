@@ -69,10 +69,10 @@ def producer(filenames, img_dir, buffer, mutex, finished):
 def consumer(buffer, mutex, finished):
     """ Process images from the image buffer
     """
-    finished = False
+    completed = False
     while True:
         if finished.is_set():
-            finished = True
+            completed = True
 
         mutex.acquire(blocking=False)
         buffer_len = len(buffer)
@@ -80,7 +80,7 @@ def consumer(buffer, mutex, finished):
 
         if len(buffer) == 0:
             mutex.release
-            if finished:
+            if completed:
                 # print("C: Finished")
                 break
             else:
