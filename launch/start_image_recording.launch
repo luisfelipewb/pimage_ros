@@ -1,0 +1,21 @@
+<launch>
+
+  <!-- Start Arena Camera -->
+  <include file="$(find arena_camera)/launch/arena_camera_node.launch" />
+
+  <!-- Convert to DolP & AoLP -->
+  <node pkg="pimage_utils" name="pimage_converter" type="pimage_converter.py" output="screen">
+    <remap from="image_raw" to="arena_camera_node/image_raw"/>
+    <param name="rate" value="10"/>
+    <param name="store_raw" type="bool" value="false"/>
+    <param name="store_rgb" type="bool" value="false"/>
+    <param name="store_pol" type="bool" value="false"/>
+    <param name="output_folder" value="/home/lwolfbat/recorded_images/"/>
+  </node>
+  
+  <!-- Visualize image stream -->
+  <node pkg="rqt_image_view" name="view_rgb" type="rqt_image_view" args="/pimage_converter/img_rgb"/>
+  <node pkg="rqt_image_view" name="view_pol" type="rqt_image_view" args="/pimage_converter/img_pol"/>
+
+
+</launch>
